@@ -6,6 +6,8 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.example.androidcanvas.BallGame.SecondActivity
 import com.example.androidcanvas.Clock.ClockActivity
+import com.example.androidcanvas.Path.PathActivity
+import com.example.androidcanvas.Path.VectorGraphicActivity
 import com.example.androidcanvas.Shapes.CustomShapeActivity
 import com.example.androidcanvas.WeightPicker.WeightPickerActivity
 
@@ -30,12 +32,20 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun <T:AppCompatActivity> startActivity(activity: Class<T>){
+    fun <T : AppCompatActivity> startActivity(activity: Class<T>) {
         startActivity(Intent(this, activity).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK))
     }
 
     fun launchClockView(view: View) {
         startActivity(ClockActivity::class.java)
+    }
+
+    fun launchPath(view: View) {
+        startActivity(PathActivity::class.java)
+    }
+
+    fun vectorPath(view: View) {
+        startActivity(VectorGraphicActivity::class.java)
     }
 
 }

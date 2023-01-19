@@ -13,6 +13,20 @@
         android:theme="@style/Theme.AndroidCanvas"
         tools:targetApi="31">
         <activity
+            android:name=".Path.VectorGraphicActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
+            android:name=".Path.PathActivity"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
             android:name=".Clock.ClockActivity"
             android:exported="false">
             <meta-data
