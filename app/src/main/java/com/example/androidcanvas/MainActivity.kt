@@ -6,6 +6,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.example.androidcanvas.BallGame.SecondActivity
 import com.example.androidcanvas.Clock.ClockActivity
+import com.example.androidcanvas.Path.BingoActivity
 import com.example.androidcanvas.Path.PathActivity
 import com.example.androidcanvas.Path.VectorGraphicActivity
 import com.example.androidcanvas.Shapes.CustomShapeActivity
@@ -46,6 +47,10 @@ class MainActivity : AppCompatActivity() {
 
     fun vectorPath(view: View) {
         startActivity(VectorGraphicActivity::class.java)
+    }
+
+    fun bingoLaunch(view: View) {
+        startActivity(BingoActivity::class.java)
     }
 
 }
