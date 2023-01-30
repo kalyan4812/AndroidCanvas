@@ -4,12 +4,13 @@ import android.animation.PropertyValuesHolder
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
+import android.os.Build.VERSION_CODES.O
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.widget.Toast
 import androidx.annotation.Nullable
+
 
 class TicTacToeView : View {
     constructor(context: Context?) : super(context) {
@@ -176,6 +177,7 @@ class TicTacToeView : View {
         if (previousType == Type.CROSS) 100f else 240f
     )
     var phase = 0f
+    var enableAutoGame = true
 
     private val map = hashMapOf<Int, Type>()
 
@@ -195,6 +197,8 @@ class TicTacToeView : View {
             }
         }.start()
     }
+
+    private val arr = Array(3) { IntArray(3) }
 
     private fun checkForBingo(type: Type): Boolean {
         var isGameOver = false
@@ -222,6 +226,11 @@ class TicTacToeView : View {
         for (i in 1..9) {
             map.put(i, Type.NONE)
         }
+        for (i in 0..2) {
+            for (j in 0..2) {
+                arr[i][j] = -1
+            }
+        }
     }
 
     init {
@@ -244,22 +253,31 @@ class TicTacToeView : View {
 
             if (rect1.contains(x, y)) {
                 drawImage(rect1, 1)
+                arr[0][0] = 1
             } else if (rect2.contains(x, y)) {
                 drawImage(rect2, 2)
+                arr[0][1] = 1
             } else if (rect3.contains(x, y)) {
                 drawImage(rect3, 3)
+                arr[0][2] = 1
             } else if (rect4.contains(x, y)) {
                 drawImage(rect4, 4)
+                arr[1][0] = 1
             } else if (rect5.contains(x, y)) {
                 drawImage(rect5, 5)
+                arr[1][1] = 1
             } else if (rect6.contains(x, y)) {
                 drawImage(rect6, 6)
+                arr[1][2] = 1
             } else if (rect7.contains(x, y)) {
                 drawImage(rect7, 7)
+                arr[2][0] = 1
             } else if (rect8.contains(x, y)) {
                 drawImage(rect8, 8)
+                arr[2][1] = 1
             } else if (rect9.contains(x, y)) {
                 drawImage(rect9, 9)
+                arr[2][2] = 1
             }
 
 
@@ -280,7 +298,9 @@ class TicTacToeView : View {
             previousType = Type.CROSS
             tappedBoxes?.add(BoxProperty(rect, false, index))
             animateDrawing(Type.CROSS)
-
+            if (enableAutoGame) {
+                android.os.Handler().postDelayed({ autoDrawCircle() }, 1000L)
+            }
         } else {
             drawCircle = true
             previousType = Type.CIRCLE
@@ -290,11 +310,153 @@ class TicTacToeView : View {
 
     }
 
+    private fun autoDrawCircle() {
+        val box = findBestMove(arr)!!
+        val mx = box[0]
+        val my = box[1]
+        if (mx == -1 || my == -1) return
+        var rect = RectF()
+        var boxNumber = -1
+        when {
+            mx == 0 && my == 0 -> {
+                rect = rect1
+                arr[0][0] = 2
+                boxNumber = 1
+            }
+            mx == 0 && my == 1 -> {
+                rect = rect2
+                arr[0][1] = 2
+                boxNumber = 2
+            }
+            mx == 0 && my == 2 -> {
+                rect = rect3
+                arr[0][2] = 2
+                boxNumber = 3
+            }
+            mx == 1 && my == 0 -> {
+                rect = rect4
+                arr[1][0] = 2
+                boxNumber = 4
+            }
+            mx == 1 && my == 1 -> {
+                rect = rect5
+                arr[1][1] = 2
+                boxNumber = 5
+            }
+            mx == 1 && my == 2 -> {
+                rect = rect6
+                arr[1][2] = 2
+                boxNumber = 6
+            }
+            mx == 2 && my == 0 -> {
+                rect = rect7
+                arr[2][0] = 2
+                boxNumber = 7
+            }
+            mx == 2 && my == 1 -> {
+                rect = rect8
+                arr[2][1] = 2
+                boxNumber = 8
+            }
+            mx == 2 && my == 2 -> {
+                rect = rect9
+                arr[2][2] = 2
+                boxNumber = 9
+            }
+        }
+        drawCircle = true
+        previousType = Type.CIRCLE
+        tappedBoxes?.add(BoxProperty(rect, true, boxNumber))
+        animateDrawing(Type.CIRCLE)
+    }
+
+
     fun resetGame() {
         tappedBoxes?.clear()
         gameOver = false
         intializeBoxes()
-        previousType=Type.CIRCLE
+        previousType = Type.CIRCLE
         invalidate()
+    }
+
+
+    fun findBestMove(board: Array<IntArray>): IntArray? {
+        var bestScore = Int.MIN_VALUE
+        val bestMove = intArrayOf(-1, -1)
+        for (i in 0..2) {
+            for (j in 0..2) {
+                if (board[i][j] == -1) {
+                    board[i][j] = 2
+                    val score = minMax(board, Type.CROSS)
+                    board[i][j] = -1
+                    if (score > bestScore) {
+                        bestScore = score
+                        bestMove[0] = i
+                        bestMove[1] = j
+                    }
+                }
+            }
+        }
+        return bestMove
+    }
+
+    // The MinMax algorithm implementation.
+    private fun minMax(board: Array<IntArray>, player: Type): Int {
+        if (checkWin(Type.CIRCLE)) return 10
+        if (checkWin(Type.CROSS)) return -10
+        if (availableCellsSize() == 0) return 0
+        var bestScore = if (player == Type.CIRCLE) Int.MIN_VALUE else Int.MAX_VALUE
+        for (i in 0..2) {
+            for (j in 0..2) {
+                if (board[i][j] == -1) {
+                    if (player == Type.CIRCLE) {
+                        board[i][j] = 2
+                        val score = minMax(board, Type.CROSS)
+                        bestScore =
+                            Math.max(score, bestScore)
+                    } else if (player == Type.CROSS) {
+                        board[i][j] = 1
+                        val score = minMax(board, Type.CIRCLE)
+                        bestScore =
+                            Math.min(score, bestScore)
+                    }
+                    board[i][j] = -1
+                }
+            }
+        }
+        return bestScore
+    }
+
+
+    private fun availableCellsSize(): Int {
+        var count = 0
+        arr.forEach {
+            it.forEach {
+                if (it == -1) count++
+            }
+        }
+        return count
+    }
+
+    private fun checkWin(type: Type): Boolean {
+        val x = if (type == Type.CIRCLE) 2 else 1
+        if (arr[0][0] == x && arr[0][1] == x && arr[0][2] == x) {
+            return true
+        } else if (arr[1][0] == x && arr[1][1] == x && arr[1][2] == x) {
+            return true
+        } else if (arr[2][0] == x && arr[2][1] == x && arr[2][2] == x) {
+            return true
+        } else if (arr[0][0] == x && arr[1][0] == x && arr[2][0] == x) {
+            return true
+        } else if (arr[0][1] == x && arr[1][1] == x && arr[2][1] == x) {
+            return true
+        } else if (arr[0][2] == x && arr[1][2] == x && arr[2][2] == x) {
+            return true
+        } else if (arr[0][0] == x && arr[1][1] == x && arr[2][2] == x) {
+            return true
+        } else if (arr[0][2] == x && arr[1][1] == x && arr[2][0] == x) {
+            return true
+        }
+        return false
     }
 }
