@@ -177,7 +177,7 @@ class TicTacToeView : View {
         if (previousType == Type.CROSS) 100f else 240f
     )
     var phase = 0f
-    var enableAutoGame = true
+    var enableAutoGame = false
 
     private val map = hashMapOf<Int, Type>()
 
@@ -376,6 +376,7 @@ class TicTacToeView : View {
         gameOver = false
         intializeBoxes()
         previousType = Type.CIRCLE
+        enableAutoGame=false
         invalidate()
     }
 
@@ -458,5 +459,9 @@ class TicTacToeView : View {
             return true
         }
         return false
+    }
+    fun enableAutoGame(boolean: Boolean){
+        resetGame()
+        enableAutoGame=boolean
     }
 }
