@@ -8,6 +8,7 @@ import com.example.androidcanvas.BallGame.SecondActivity
 import com.example.androidcanvas.Clock.ClockActivity
 import com.example.androidcanvas.Shapes.CustomShapeActivity
 import com.example.androidcanvas.WeightPicker.WeightPickerActivity
+import com.example.androidcanvas.objectTranslator.TranslatorActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,12 +31,16 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun <T:AppCompatActivity> startActivity(activity: Class<T>){
+    fun <T : AppCompatActivity> startActivity(activity: Class<T>) {
         startActivity(Intent(this, activity).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK))
     }
 
     fun launchClockView(view: View) {
         startActivity(ClockActivity::class.java)
+    }
+
+    fun launchTranslator(view: View) {
+        startActivity(TranslatorActivity::class.java)
     }
 
 }
