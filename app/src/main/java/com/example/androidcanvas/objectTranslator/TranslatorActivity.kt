@@ -20,12 +20,13 @@ class TranslatorActivity : AppCompatActivity() {
         binding = ActivityTranslatorBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.root.doOnLayout {
-           startAnimation(speed = 1)
+            //  startAnimation(speed = 1, view = binding.translatorView)
+            collisionAnimateView(binding.translatorView, binding.anotherTranslatorView)
         }
     }
 
     // --------------------------------- anim around border of screen-----------------------------------
-    private fun startAnimation(repeatCount: Int = 1, speed: Int) {
+    private fun startAnimation(repeatCount: Int = 1, speed: Int, view: View) {
         val rect = Rect()
         window.decorView.getWindowVisibleDisplayFrame(rect)
         val screenEndX = resources.displayMetrics.widthPixels
@@ -37,17 +38,17 @@ class TranslatorActivity : AppCompatActivity() {
             ),
             screenEndX.toFloat(),
             screenEndY.toFloat(),
-            binding.translatorView.width.toFloat(),
-            binding.translatorView.height.toFloat()
+            view.width.toFloat(),
+            view.height.toFloat()
         )
         val duration = (screenEndX * 2 + screenEndY * 2) / speed
-        playAnimations(animQueue, duration.toLong(), repeatCount, LinkedList(animQueue))
+        playAnimations(animQueue, duration.toLong(), repeatCount, LinkedList(animQueue), view)
     }
 
     private fun playAnimations(
         queue: Queue<Pair<Float, Float>>,
         eachDuration: Long,
-        repeatCount: Int = 1, originalQueue: Queue<Pair<Float, Float>>
+        repeatCount: Int = 1, originalQueue: Queue<Pair<Float, Float>>, view: View
     ) {
         if (queue.isEmpty() || repeatCount == 0) {
             if (repeatCount > 0) {
@@ -55,24 +56,24 @@ class TranslatorActivity : AppCompatActivity() {
                     LinkedList(originalQueue),
                     eachDuration,
                     repeatCount - 1,
-                    originalQueue
+                    originalQueue, view
                 )
             } else if (repeatCount < 0) {
                 playAnimations(
                     LinkedList(originalQueue),
                     eachDuration,
                     repeatCount,
-                    originalQueue
+                    originalQueue, view
                 )
             }
             return
         }
         val entry = queue.poll() ?: return
-        binding.translatorView.animate().x(entry.first).y(entry.second).apply {
+        view.animate().x(entry.first).y(entry.second).apply {
             duration = eachDuration
             interpolator = LinearInterpolator()
         }.withEndAction {
-            playAnimations(queue, eachDuration, repeatCount, originalQueue)
+            playAnimations(queue, eachDuration, repeatCount, originalQueue, view)
         }.start()
     }
 
@@ -117,29 +118,29 @@ class TranslatorActivity : AppCompatActivity() {
     // -------------------------- collision with screen boundaries
     private var velocityX: Float = 5f
     private var velocityY: Float = 50f
-    private fun animateView() {
+    private fun animateView(view: View) {
         val screenWidth = resources.displayMetrics.widthPixels.toFloat()
         val screenHeight = resources.displayMetrics.heightPixels.toFloat()
         val entry = moveView(binding.translatorView, velocityX, velocityY)
-        if (entry.first < 0 || entry.first + binding.translatorView.width > screenWidth) {
+        if (entry.first < 0 || entry.first + view.width > screenWidth) {
             velocityX = -velocityX
         }
-        if (entry.second < 0 || entry.second + binding.translatorView.height > screenHeight) {
+        if (entry.second < 0 || entry.second + view.height > screenHeight) {
             velocityY = -velocityY
         }
-        binding.translatorView.animate().apply {
+        view.animate().apply {
             x(entry.first)
             y(entry.second)
             duration = calculateDuration(
-                binding.translatorView.x,
-                binding.translatorView.y,
+                view.x,
+                view.y,
                 entry.first,
                 entry.second,
                 velocityX,
                 velocityY
             )
             interpolator = LinearInterpolator()
-            withEndAction { animateView() }
+            withEndAction { animateView(view) }
         }.start()
     }
 
@@ -148,33 +149,33 @@ class TranslatorActivity : AppCompatActivity() {
     private var vy1: Float = 7f
     private var vx2: Float = 7f
     private var vy2: Float = 15f
-    private fun collisionAnimateView() {
+    private fun collisionAnimateView(view1: View, view2: View) {
         val screenWidth = resources.displayMetrics.widthPixels.toFloat()
         val screenHeight = resources.displayMetrics.heightPixels.toFloat()
         val entry1 = moveView(binding.translatorView, vx1, vy1)
         val entry2 = moveView(binding.anotherTranslatorView, vx2, vy2)
 
-        if (entry1.first < 0 || entry1.first + binding.translatorView.width > screenWidth) {
+        if (entry1.first < 0 || entry1.first + view1.width > screenWidth) {
             vx1 = -vx1
         }
-        if (entry1.second < 0 || entry1.second + binding.translatorView.height > screenHeight) {
+        if (entry1.second < 0 || entry1.second + view1.height > screenHeight) {
             vy1 = -vy1
         }
-        if (entry2.first < 0 || entry2.first + binding.anotherTranslatorView.width > screenWidth) {
+        if (entry2.first < 0 || entry2.first + view2.width > screenWidth) {
             vx2 = -vx2
         }
-        if (entry2.second < 0 || entry2.second + binding.anotherTranslatorView.height > screenHeight) {
+        if (entry2.second < 0 || entry2.second + view2.height > screenHeight) {
             vy2 = -vy2
         }
         if (checkCollision(
                 entry1.first,
                 entry1.second,
-                binding.translatorView.width,
-                binding.translatorView.height,
+                view1.width,
+                view1.height,
                 entry2.first,
                 entry2.second,
-                binding.anotherTranslatorView.width,
-                binding.anotherTranslatorView.height
+                view2.width,
+                view2.height
             )
         ) {
             vx1 = -vx1
@@ -182,12 +183,12 @@ class TranslatorActivity : AppCompatActivity() {
             vx2 = -vx2
             vy2 = -vy2
         }
-        binding.translatorView.animate().apply {
+        view1.animate().apply {
             x(entry1.first)
             y(entry1.second)
             duration = calculateDuration(
-                binding.translatorView.x,
-                binding.translatorView.y,
+                view1.x,
+                view1.y,
                 entry1.first,
                 entry1.second,
                 vx1,
@@ -197,19 +198,19 @@ class TranslatorActivity : AppCompatActivity() {
             interpolator = LinearInterpolator()
         }.start()
 
-        binding.anotherTranslatorView.animate().apply {
+        view2.animate().apply {
             x(entry2.first)
             y(entry2.second)
             duration = calculateDuration(
-                binding.anotherTranslatorView.x,
-                binding.anotherTranslatorView.y,
+                view2.x,
+                view2.y,
                 entry2.first,
                 entry2.second,
                 vx2,
                 vy2
             )
             interpolator = LinearInterpolator()
-            withEndAction { collisionAnimateView() }
+            withEndAction { collisionAnimateView(view1, view2) }
         }.start()
     }
 
